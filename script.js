@@ -97,7 +97,6 @@
     firesound.volume = 0.6;
     confirmsound.volume = 0.7;
     bgmusic.volume   = 0.35;
-    bgmusic.play().catch(() => {});
     // Desbloquear pasos (play+pause inmediato)
     footsteps.play().then(() => {
       footsteps.pause();
@@ -107,6 +106,12 @@
     firesound.play().then(() => {
       firesound.pause();
       firesound.currentTime = 0;
+    }).catch(() => {});
+    // Desbloquear bgmusic silenciosamente (no arranca todavía,
+    // se reproducirá desde startGame con un retardo)
+    bgmusic.play().then(() => {
+      bgmusic.pause();
+      bgmusic.currentTime = 0;
       audioUnlocked = true;
     }).catch(() => { audioUnlocked = true; });
   };
@@ -337,8 +342,10 @@
     confirmsound.play().catch(() => {});
     gameStarted = true;
     titleScreen.classList.add('hidden');
-    // unlockAudio ya se dispara con el mousedown/keydown global (once)
-    // así que la música arrancará en este mismo gesto.
+    // Música de fondo: arranca ~1s después para dejar que suene el confirm
+    setTimeout(() => {
+      bgmusic.play().catch(() => {});
+    }, 1000);
   }
 
   playButton.addEventListener('click', startGame);
