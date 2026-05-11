@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alejandra y Madrina</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Escena pixel-art -->
+  <div class="scene" id="scene">
+
+    <!-- Fondo (imagen pixel-art) -->
+    <div class="background"></div>
+
+    <!-- Personaje: 4 frames de caminata + 4 de ataque. -->
+    <div id="madrina" class="character">
+      <img class="frame walk-frame" data-frame="0" src="madrina/madrinad1.png" alt="Madrina walk 1" />
+      <img class="frame walk-frame" data-frame="1" src="madrina/madrinad2.png" alt="Madrina walk 2" />
+      <img class="frame walk-frame" data-frame="2" src="madrina/madrinad3.png" alt="Madrina walk 3" />
+      <img class="frame walk-frame" data-frame="3" src="madrina/madrinad4.png" alt="Madrina walk 4" />
+      <img class="frame attack-frame" data-frame="0" src="madrina/madrinaa1.png" alt="Madrina attack 1" />
+      <img class="frame attack-frame" data-frame="1" src="madrina/madrinaa2.png" alt="Madrina attack 2" />
+      <img class="frame attack-frame" data-frame="2" src="madrina/madrinaa3.png" alt="Madrina attack 3" />
+      <img class="frame attack-frame" data-frame="3" src="madrina/madrinaa4.png" alt="Madrina attack 4" />
+    </div>
+
+    <!-- Contenedor donde el JS inyecta proyectiles -->
+    <div id="projectiles"></div>
+
+    <!-- Audio de pasos en loop -->
+    <audio id="footsteps" src="footsteps.mp3" loop preload="auto"></audio>
+
+    <!-- Música de fondo en loop -->
+    <audio id="bgmusic" src="Where_the_Lanterns_Sleep.mp3" loop preload="auto"></audio>
+
+    <!-- Pequeña pista en pantalla -->
+    <div class="hint">Usa ⬅ ➡ para moverte</div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,131 @@
+/* ============================================
+   RESET BÁSICO
+============================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #0b0f1a;
+  /* Pixel-art crujiente al escalar */
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  font-family: 'Courier New', monospace;
+  cursor: default;
+}
+
+/* ============================================
+   ESCENA
+============================================ */
+.scene {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ============================================
+   FONDO (imagen pixel-art)
+============================================ */
+.background {
+  position: absolute;
+  inset: 0;
+  background-image: url('fondojuego.png');
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  /* Mantiene la nitidez pixel-art al escalar */
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+/* ============================================
+   PERSONAJES
+   - Cada .character es un contenedor posicionado en absoluto.
+   - Contiene dos <img> superpuestos: idle y walk.
+   - JS alterna cuál es visible para animar.
+============================================ */
+.character {
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* === TAMAÑO DE PERSONAJE === */
+  height: 180px;
+  /* Ancho aproximado al sprite. Como los frames son position:absolute,
+     necesitamos width explícito para que offsetWidth funcione en JS. */
+  width: 110px;
+  pointer-events: none;
+  user-select: none;
+  transform-origin: 50% 100%;
+  will-change: transform;
+  /* La posición y flip se aplican desde JS vía variables CSS */
+  transform: translate(var(--x, 0), var(--y, 0)) scaleX(var(--flip, 1));
+}
+
+/* Cada frame ocupa todo el contenedor y se apila */
+.character .frame {
+  display: block;
+  height: 100%;
+  width: auto;
+  position: absolute;
+  top: 0;
+  left: 0;
+  visibility: hidden;
+}
+
+/* Solo el frame con .is-active se muestra (JS lo gestiona) */
+.character .frame.is-active {
+  visibility: visible;
+}
+
+/* ============================================
+   PROYECTILES (estela)
+============================================ */
+#projectiles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.projectile {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 60px;
+  width: auto;
+  pointer-events: none;
+  user-select: none;
+  transform-origin: 50% 50%;
+  transform: translate(var(--x, 0), var(--y, 0)) scaleX(var(--flip, 1));
+  will-change: transform;
+}
+
+/* ============================================
+   PISTA EN PANTALLA
+============================================ */
+.hint {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  letter-spacing: 1px;
+  pointer-events: none;
+  animation: fadeHint 6s ease forwards;
+}
+
+@keyframes fadeHint {
+  0%, 60%   { opacity: 1; }
+  100%      { opacity: 0; }
+}
