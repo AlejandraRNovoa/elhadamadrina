@@ -8,6 +8,7 @@
   const SPEED = 4;
   const FRAME_INTERVAL = 140;          // ms entre frames de caminata
   const ATTACK_FRAME_INTERVAL = 100;   // ms entre frames de ataque (más rápido)
+  const CROUCH_FRAME_INTERVAL = 250;   // ms entre frames de agacharse (más lento)
   const GROUND_HEIGHT_RATIO = 0.12;
   const SCREEN_MARGIN = 20;
 
@@ -25,6 +26,7 @@
     el: document.getElementById('madrina'),
     walkFrames:   document.querySelectorAll('#madrina .walk-frame'),
     attackFrames: document.querySelectorAll('#madrina .attack-frame'),
+    crouchFrames: document.querySelectorAll('#madrina .crouch-frame'),
     x: window.innerWidth / 2,
     flip: 1,
     // --- estado de ataque ---
@@ -32,6 +34,10 @@
     attackFrame: 0,
     attackAccumulator: 0,
     attackDidFire: false,  // ya se lanzó el proyectil en este ataque
+    // --- estado de agacharse ---
+    isCrouching: false,
+    crouchFrame: 0,
+    crouchAccumulator: 0,
   };
 
   // Lista de proyectiles activos
@@ -44,16 +50,18 @@
   let isWalking = false;
 
   // --- INPUT TECLADO --------------------------------------------
-  const keys = { left: false, right: false };
+  const keys = { left: false, right: false, down: false };
 
   window.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowLeft'  || e.key === 'a' || e.key === 'A') keys.left  = true;
     if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = true;
+    if (e.key === 'ArrowDown'  || e.key === 's' || e.key === 'S') keys.down  = true;
   });
 
   window.addEventListener('keyup', (e) => {
     if (e.key === 'ArrowLeft'  || e.key === 'a' || e.key === 'A') keys.left  = false;
     if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = false;
+    if (e.key === 'ArrowDown'  || e.key === 's' || e.key === 'S') keys.down  = false;
   });
 
   // --- INPUT RATÓN: ATAQUE --------------------------------------
@@ -93,6 +101,7 @@
   function clearAllFrames(c) {
     c.walkFrames.forEach(img => img.classList.remove('is-active'));
     c.attackFrames.forEach(img => img.classList.remove('is-active'));
+    c.crouchFrames.forEach(img => img.classList.remove('is-active'));
   }
   function setWalkFrame(c, index) {
     clearAllFrames(c);
@@ -101,6 +110,10 @@
   function setAttackFrame(c, index) {
     clearAllFrames(c);
     if (c.attackFrames[index]) c.attackFrames[index].classList.add('is-active');
+  }
+  function setCrouchFrame(c, index) {
+    clearAllFrames(c);
+    if (c.crouchFrames[index]) c.crouchFrames[index].classList.add('is-active');
   }
 
   // --- PROYECTILES ----------------------------------------------
@@ -203,34 +216,72 @@
       }
     }
 
-    // === Si NO está atacando: caminar/idle normal ===
+    // === Si NO está atacando: comprobar agacharse o caminar ===
     if (!c.isAttacking) {
-      const moving = dir !== 0;
-
-      if (moving) {
-        walkAccumulator += dt;
-        if (walkAccumulator >= FRAME_INTERVAL) {
-          const advance = Math.floor(walkAccumulator / FRAME_INTERVAL);
-          const total = c.walkFrames.length || 1;
-          walkFrameIndex = (walkFrameIndex + advance) % total;
-          walkAccumulator = walkAccumulator % FRAME_INTERVAL;
+      // Gate de agacharse: si pulsa abajo, no se mueve y anima crouch.
+      if (keys.down) {
+        if (!c.isCrouching) {
+          // Recién entra en agacharse: reset
+          c.isCrouching = true;
+          c.crouchFrame = 0;
+          c.crouchAccumulator = 0;
+          // Cortar pasos si venía caminando
+          if (isWalking) {
+            isWalking = false;
+            footsteps.pause();
+          }
+          // Reset del walk para que al levantarse empiece desde 0
+          walkAccumulator = 0;
+          walkFrameIndex = 0;
         }
-        c.x += dir * SPEED;
-        c.flip = dir < 0 ? -1 : 1;
+
+        // Avanzar frames de agacharse alternando
+        c.crouchAccumulator += dt;
+        if (c.crouchAccumulator >= CROUCH_FRAME_INTERVAL) {
+          const advance = Math.floor(c.crouchAccumulator / CROUCH_FRAME_INTERVAL);
+          const total = c.crouchFrames.length || 1;
+          c.crouchFrame = (c.crouchFrame + advance) % total;
+          c.crouchAccumulator = c.crouchAccumulator % CROUCH_FRAME_INTERVAL;
+        }
+
+        setCrouchFrame(c, c.crouchFrame);
+        // No se mueve, no se cambia flip → mantiene orientación
       } else {
-        walkAccumulator = 0;
-        walkFrameIndex = 0;
-      }
+        // No está pulsando abajo: si venía agachada, salir del estado
+        if (c.isCrouching) {
+          c.isCrouching = false;
+          c.crouchFrame = 0;
+          c.crouchAccumulator = 0;
+        }
 
-      setWalkFrame(c, walkFrameIndex);
+        // --- Caminar / idle normal ---
+        const moving = (dir !== 0);
 
-      // Sonido de pasos
-      if (moving && !isWalking) {
-        isWalking = true;
-        if (audioUnlocked) footsteps.play().catch(() => {});
-      } else if (!moving && isWalking) {
-        isWalking = false;
-        footsteps.pause();
+        if (moving) {
+          walkAccumulator += dt;
+          if (walkAccumulator >= FRAME_INTERVAL) {
+            const advance = Math.floor(walkAccumulator / FRAME_INTERVAL);
+            const total = c.walkFrames.length || 1;
+            walkFrameIndex = (walkFrameIndex + advance) % total;
+            walkAccumulator = walkAccumulator % FRAME_INTERVAL;
+          }
+          c.x += dir * SPEED;
+          c.flip = dir < 0 ? -1 : 1;
+        } else {
+          walkAccumulator = 0;
+          walkFrameIndex = 0;
+        }
+
+        setWalkFrame(c, walkFrameIndex);
+
+        // Sonido de pasos
+        if (moving && !isWalking) {
+          isWalking = true;
+          if (audioUnlocked) footsteps.play().catch(() => {});
+        } else if (!moving && isWalking) {
+          isWalking = false;
+          footsteps.pause();
+        }
       }
     }
 
@@ -257,6 +308,7 @@
   const allImages = [];
   madrina.walkFrames.forEach(img => allImages.push(img));
   madrina.attackFrames.forEach(img => allImages.push(img));
+  madrina.crouchFrames.forEach(img => allImages.push(img));
   Promise.all(
     allImages.map(img => new Promise(res => {
       if (img.complete) res();
