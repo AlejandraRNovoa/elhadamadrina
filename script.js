@@ -23,6 +23,7 @@
   // --- ELEMENTOS ------------------------------------------------
   const footsteps       = document.getElementById('footsteps');
   const firesound       = document.getElementById('firesound');
+  const confirmsound    = document.getElementById('confirmsound');
   const bgmusic         = document.getElementById('bgmusic');
   const projectilesRoot = document.getElementById('projectiles');
 
@@ -94,6 +95,7 @@
     if (audioUnlocked) return;
     footsteps.volume = 0.5;
     firesound.volume = 0.6;
+    confirmsound.volume = 0.7;
     bgmusic.volume   = 0.35;
     bgmusic.play().catch(() => {});
     // Desbloquear pasos (play+pause inmediato)
@@ -330,6 +332,9 @@
 
   function startGame() {
     if (gameStarted) return;
+    // Sonido de confirmación (dentro del gesto del usuario)
+    confirmsound.currentTime = 0;
+    confirmsound.play().catch(() => {});
     gameStarted = true;
     titleScreen.classList.add('hidden');
     // unlockAudio ya se dispara con el mousedown/keydown global (once)
