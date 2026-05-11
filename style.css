@@ -10,7 +10,10 @@
 html, body {
   width: 100%;
   height: 100%;
+  height: 100dvh;
   overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
   background: #0b0f1a;
   /* Pixel-art crujiente al escalar */
   image-rendering: pixelated;
@@ -27,6 +30,7 @@ html, body {
   position: relative;
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
 }
 
@@ -135,8 +139,8 @@ html, body {
 ============================================ */
 .hud-lives {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: calc(16px + env(safe-area-inset-top, 0px));
+  right: calc(16px + env(safe-area-inset-right, 0px));
   z-index: 50;
   display: flex;
   gap: 8px;
@@ -148,11 +152,21 @@ html, body {
 }
 
 .hud-lives img {
-  height: 40px;
+  height: 56px;
   width: auto;
   user-select: none;
   -webkit-user-drag: none;
   filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.6));
+}
+
+/* En móvil/tablet, gatitos más pequeños para no ocupar mucho */
+@media (hover: none) and (pointer: coarse) {
+  .hud-lives {
+    gap: 6px;
+  }
+  .hud-lives img {
+    height: 32px;
+  }
 }
 
 /* ============================================
@@ -164,9 +178,9 @@ html, body {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 16px;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
   z-index: 60;
-  padding: 0 16px;
+  padding: 0 calc(16px + env(safe-area-inset-right, 0px)) 0 calc(16px + env(safe-area-inset-left, 0px));
   pointer-events: none; /* Solo los botones capturan */
   justify-content: space-between;
   align-items: flex-end;
@@ -228,6 +242,69 @@ html, body {
 /* Solo se muestran en dispositivos táctiles */
 @media (hover: none) and (pointer: coarse) {
   .touch-controls {
+    display: flex;
+  }
+}
+
+/* En pantallas bajas (móvil horizontal típico), botones más compactos
+   para no tapar al personaje */
+@media (hover: none) and (pointer: coarse) and (max-height: 500px) {
+  .tc-btn {
+    width: 56px;
+    height: 56px;
+    font-size: 24px;
+  }
+  .tc-attack {
+    width: 64px;
+    height: 64px;
+    font-size: 28px;
+  }
+  .touch-controls {
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ============================================
+   AVISO DE ORIENTACIÓN (móvil vertical)
+   Oculto por defecto. Visible solo en móvil/tablet vertical.
+============================================ */
+.rotate-overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 200;
+  background: #0b0f1a;
+  color: #ffffff;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  text-align: center;
+  padding: 24px;
+  font-family: 'Courier New', monospace;
+}
+
+.rotate-icon {
+  font-size: 72px;
+  animation: rotateHint 2.2s ease-in-out infinite;
+}
+
+.rotate-text {
+  font-size: 18px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.6);
+}
+
+@keyframes rotateHint {
+  0%, 30%   { transform: rotate(0deg);  }
+  60%, 70%  { transform: rotate(-90deg); }
+  100%      { transform: rotate(0deg);  }
+}
+
+/* Mostrar solo en móvil/tablet vertical */
+@media (hover: none) and (pointer: coarse) and (orientation: portrait) {
+  .rotate-overlay {
     display: flex;
   }
 }
