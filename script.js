@@ -76,21 +76,30 @@
     if (e.key === 'ArrowDown'  || e.key === 's' || e.key === 'S') keys.down  = false;
   });
 
-  // --- INPUT RATÓN: ATAQUE --------------------------------------
-  window.addEventListener('mousedown', (e) => {
-    // Botón izquierdo solamente
-    if (e.button !== 0) return;
+  // --- ATAQUE (función reutilizable) ----------------------------
+  function tryAttack() {
     if (!gameStarted) return;
     if (madrina.isAttacking) return;
     madrina.isAttacking = true;
     madrina.attackFrame = 0;
     madrina.attackAccumulator = 0;
     madrina.attackDidFire = false;
-    // Detener pasos al iniciar ataque (no se mueve durante el ataque)
+    // Detener pasos al iniciar ataque
     if (isWalking) {
       isWalking = false;
       footsteps.pause();
     }
+  }
+
+  // --- INPUT RATÓN: ATAQUE --------------------------------------
+  window.addEventListener('mousedown', (e) => {
+    // Botón izquierdo solamente
+    if (e.button !== 0) return;
+    // Ignorar clicks sobre los botones táctiles (tienen su propio handler)
+    if (e.target && e.target.closest('.touch-controls')) return;
+    // Ignorar clicks sobre el botón PLAY de la pantalla inicial
+    if (e.target && e.target.closest('.title-screen')) return;
+    tryAttack();
   });
 
   // --- AUDIO ----------------------------------------------------
@@ -346,6 +355,50 @@
 
     requestAnimationFrame(tick);
   }
+
+  // --- CONTROLES TÁCTILES ---------------------------------------
+  // Pointer Events: cubren touch + mouse + stylus con una sola API.
+  // Cada botón llama a onPress al pulsar y onRelease al soltar/cancelar.
+  function bindTouchButton(el, onPress, onRelease) {
+    if (!el) return;
+    let active = false;
+
+    const press = (e) => {
+      e.preventDefault();
+      if (!gameStarted) return;
+      if (active) return;
+      active = true;
+      el.classList.add('is-pressed');
+      try { el.setPointerCapture(e.pointerId); } catch (_) {}
+      onPress();
+    };
+
+    const release = (e) => {
+      if (!active) return;
+      active = false;
+      el.classList.remove('is-pressed');
+      try { el.releasePointerCapture(e.pointerId); } catch (_) {}
+      onRelease();
+    };
+
+    el.addEventListener('pointerdown', press);
+    el.addEventListener('pointerup', release);
+    el.addEventListener('pointercancel', release);
+    el.addEventListener('pointerleave', release);
+
+    // Evitar menú contextual o selección
+    el.addEventListener('contextmenu', (e) => e.preventDefault());
+  }
+
+  const tcLeft   = document.getElementById('tc-left');
+  const tcRight  = document.getElementById('tc-right');
+  const tcDown   = document.getElementById('tc-down');
+  const tcAttack = document.getElementById('tc-attack');
+
+  bindTouchButton(tcLeft,   () => { keys.left  = true;  }, () => { keys.left  = false; });
+  bindTouchButton(tcRight,  () => { keys.right = true;  }, () => { keys.right = false; });
+  bindTouchButton(tcDown,   () => { keys.down  = true;  }, () => { keys.down  = false; });
+  bindTouchButton(tcAttack, () => { tryAttack();         }, () => { /* one-shot */    });
 
   // --- PANTALLA INICIAL ----------------------------------------
   const titleScreen = document.getElementById('title-screen');
