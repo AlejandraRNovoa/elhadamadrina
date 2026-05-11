@@ -12,6 +12,10 @@
   const GROUND_HEIGHT_RATIO = 0.12;
   const SCREEN_MARGIN = 20;
 
+  // --- ESTADO GLOBAL DEL JUEGO ----------------------------------
+  // Hasta que el usuario pulse PLAY, los inputs de gameplay se ignoran.
+  let gameStarted = false;
+
   // Proyectil
   const PROJECTILE_SPEED = 8;          // px/frame
   const PROJECTILE_Y_OFFSET = 0.55;    // 0 = pies, 1 = cabeza. 0.55 ≈ a la altura del torso
@@ -54,12 +58,14 @@
   const keys = { left: false, right: false, down: false };
 
   window.addEventListener('keydown', (e) => {
+    if (!gameStarted) return;
     if (e.key === 'ArrowLeft'  || e.key === 'a' || e.key === 'A') keys.left  = true;
     if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = true;
     if (e.key === 'ArrowDown'  || e.key === 's' || e.key === 'S') keys.down  = true;
   });
 
   window.addEventListener('keyup', (e) => {
+    if (!gameStarted) return;
     if (e.key === 'ArrowLeft'  || e.key === 'a' || e.key === 'A') keys.left  = false;
     if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = false;
     if (e.key === 'ArrowDown'  || e.key === 's' || e.key === 'S') keys.down  = false;
@@ -69,6 +75,7 @@
   window.addEventListener('mousedown', (e) => {
     // Botón izquierdo solamente
     if (e.button !== 0) return;
+    if (!gameStarted) return;
     if (madrina.isAttacking) return;
     madrina.isAttacking = true;
     madrina.attackFrame = 0;
@@ -316,6 +323,34 @@
 
     requestAnimationFrame(tick);
   }
+
+  // --- PANTALLA INICIAL ----------------------------------------
+  const titleScreen = document.getElementById('title-screen');
+  const playButton  = document.getElementById('title-play');
+
+  function startGame() {
+    if (gameStarted) return;
+    gameStarted = true;
+    titleScreen.classList.add('hidden');
+    // unlockAudio ya se dispara con el mousedown/keydown global (once)
+    // así que la música arrancará en este mismo gesto.
+  }
+
+  playButton.addEventListener('click', startGame);
+  playButton.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      startGame();
+    }
+  });
+  // También Enter/Espacio aunque el botón no tenga foco
+  window.addEventListener('keydown', (e) => {
+    if (gameStarted) return;
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      startGame();
+    }
+  });
 
   // --- INIT -----------------------------------------------------
   const allImages = [];
