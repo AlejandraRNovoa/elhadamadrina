@@ -18,6 +18,7 @@
 
   // --- ELEMENTOS ------------------------------------------------
   const footsteps       = document.getElementById('footsteps');
+  const firesound       = document.getElementById('firesound');
   const bgmusic         = document.getElementById('bgmusic');
   const projectilesRoot = document.getElementById('projectiles');
 
@@ -85,11 +86,18 @@
   const unlockAudio = () => {
     if (audioUnlocked) return;
     footsteps.volume = 0.5;
+    firesound.volume = 0.6;
     bgmusic.volume   = 0.35;
     bgmusic.play().catch(() => {});
+    // Desbloquear pasos (play+pause inmediato)
     footsteps.play().then(() => {
       footsteps.pause();
       footsteps.currentTime = 0;
+    }).catch(() => {});
+    // Desbloquear firesound (play+pause inmediato)
+    firesound.play().then(() => {
+      firesound.pause();
+      firesound.currentTime = 0;
       audioUnlocked = true;
     }).catch(() => { audioUnlocked = true; });
   };
@@ -199,6 +207,11 @@
               charY,
               c.flip
             );
+            // Sonido de disparo (one-shot, reset por si se repite seguido)
+            if (audioUnlocked) {
+              firesound.currentTime = 0;
+              firesound.play().catch(() => {});
+            }
             c.attackDidFire = true;
           }
           // Salir del estado de ataque
