@@ -16,6 +16,9 @@
   // Hasta que el usuario pulse PLAY, los inputs de gameplay se ignoran.
   let gameStarted = false;
 
+  // Vidas del jugador (sistema preparado para futuro daño)
+  let playerLives = 3;
+
   // Proyectil
   const PROJECTILE_SPEED = 8;          // px/frame
   const PROJECTILE_Y_OFFSET = 0.55;    // 0 = pies, 1 = cabeza. 0.55 ≈ a la altura del torso
@@ -26,6 +29,7 @@
   const confirmsound    = document.getElementById('confirmsound');
   const bgmusic         = document.getElementById('bgmusic');
   const projectilesRoot = document.getElementById('projectiles');
+  const hudLives        = document.getElementById('hud-lives');
 
   // Estado de Madrina
   const madrina = {
@@ -118,6 +122,18 @@
   window.addEventListener('mousedown', unlockAudio, { once: true });
   window.addEventListener('touchstart', unlockAudio, { once: true });
   window.addEventListener('keydown',    unlockAudio, { once: true });
+
+  // --- HUD DE VIDAS ---------------------------------------------
+  function updateLivesUI() {
+    // Re-pintado completo: vacía y reconstruye N gatitos
+    hudLives.innerHTML = '';
+    for (let i = 0; i < playerLives; i++) {
+      const img = document.createElement('img');
+      img.src = 'elements/catlife.png';
+      img.alt = 'Vida';
+      hudLives.appendChild(img);
+    }
+  }
 
   // --- ANIMACIÓN: helpers --------------------------------------
   function clearAllFrames(c) {
@@ -376,6 +392,7 @@
     }))
   ).then(() => {
     setWalkFrame(madrina, 0);
+    updateLivesUI();
     lastTime = performance.now();
     requestAnimationFrame(tick);
   });

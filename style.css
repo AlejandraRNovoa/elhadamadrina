@@ -131,6 +131,31 @@ html, body {
 }
 
 /* ============================================
+   HUD DE VIDAS
+============================================ */
+.hud-lives {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 50;
+  display: flex;
+  gap: 8px;
+  pointer-events: none;
+  /* Mantener nitidez pixel-art */
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+.hud-lives img {
+  height: 40px;
+  width: auto;
+  user-select: none;
+  -webkit-user-drag: none;
+  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.6));
+}
+
+/* ============================================
    PANTALLA INICIAL (TITLE SCREEN)
 ============================================ */
 .title-screen {
